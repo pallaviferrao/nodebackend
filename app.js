@@ -12,7 +12,7 @@ app.post("/hello", (req, res) => {
   res.setHeader("Content-Type", "application/json");
   console.log(req.body);
   var username = req.body;
-  res.json({ a: username });
+  res.json({ a: username, b: true });
 });
 
 app.listen(port, () => {
