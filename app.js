@@ -76,7 +76,7 @@ app.post("/signup", (req, res) => {
       const errorMessage = error.message;
       console.log(errorCode);
       console.log(errorMessage);
-      res.json({ success: false });
+      res.json({ success: false, errorMessage: errorMessage });
     });
   //   res.json({ b: true });
 });
