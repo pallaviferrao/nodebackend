@@ -31,7 +31,6 @@ const firebaseConfig = {
   appId: process.env.API_ID,
   measurementId: process.env.MEASUREMENT_ID,
 };
-
 const apps = initializeApp(firebaseConfig);
 const db = getFirestore(apps);
 let uid = "";
@@ -118,15 +117,17 @@ app.post("/createGame", (req, res) => {
       userId: userId,
     };
     let gamesId = await addDoc(newCityRef, data);
-
-    const gamesRef = collection(db, "Games");
-    let gameData = {
-      gameName: gameName,
-      userId: userId,
-      gameId: gamesId,
-    };
-    const gameId = await addDoc(gamesRef, gameData);
-    console.log(gameId.Id);
+    let gameId = await gamesId.id;
+    // const gamesRef = collection(db, "Games");
+    // let gameData = {
+    //   gameName: gameName,
+    //   userId: userId,
+    //   gameId: gamesId,
+    // };
+    // const gameId = await addDoc(gamesRef, gameData);
+    // console.log(gameId.Id);
+    // console.log(gameId);
+    res.json({ success: true, gameId: gameId });
   };
   addDatas(userId, gameName);
 });
@@ -149,6 +150,51 @@ app.post("/getGames", (req, res) => {
   };
   getData();
 });
+
+app.post("/addGame", (req, res) => {
+  const getData = async () => {
+    const gamesRef = collection(db, "Games");
+    let q = req.body[0].questions;
+    let j = q.map((elem) => {
+      return {
+        question: elem[0],
+        answer: elem[1],
+      };
+    });
+    let gameData = {
+      gameName: req.body[0].gameName,
+      gameId: req.body[0].gameId,
+      questions: j,
+    };
+    const gameId = await addDoc(gamesRef, gameData);
+    res.json({ success: true, gameId: gameId.id });
+  };
+  getData();
+  // console.log(req.body[0].gameName);
+  // console.log(req.body[0].gameId);
+  // console.log(req.body[0].questions);
+});
+
+app.post("/getGame", (req, res) => {
+  const getData = async () => {
+    const q = query(
+      collection(db, "Games"),
+      where("gameId", "==", req.body[0].gameId)
+    );
+    // console.log(q);
+    const querySnapshot = await getDocs(q);
+    let games = [];
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      console.log(doc.id, " => ", doc.data());
+      let x = [doc.id, doc.data()];
+      games.push(x);
+    });
+    res.json({ success: true, games: games });
+  };
+  getData();
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
