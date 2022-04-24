@@ -1,40 +1,19 @@
-// const express = require("express");
-import { initializeApp } from "firebase/app";
-// import { getDatabase } from "firebase/database";
-// import { getFirestore, collection, getDocs } from "firebase/firestore/lite";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-} from "firebase/firestore";
-import { doc, setDoc } from "firebase/firestore";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { createClient } from "redis";
+import { addGame, getGames, getGame, createGame } from "./api/game.js";
+import { signUp, login } from "./api/auth.js";
 import express from "express";
 const app = express();
 import cors from "cors";
-// var cors = require("cors");
-// const { request } = require("http");
+
+const httpServer = createServer(app);
+
 const port = process.env.PORT || 5000;
-const firebaseConfig = {
-  apiKey: process.env.API_KEY,
-  authDomain: "game-ae656.firebaseapp.com",
-  projectId: "game-ae656",
-  storageBucket: "game-ae656.appspot.com",
-  messagingSenderId: process.env.MESSAGE_SENDER_ID,
-  appId: process.env.API_ID,
-  measurementId: process.env.MEASUREMENT_ID,
-};
-const apps = initializeApp(firebaseConfig);
-const db = getFirestore(apps);
-let uid = "";
-const auth = getAuth();
+const io = new Server(httpServer, {
+  cors: { origin: "*" },
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(
@@ -42,159 +21,26 @@ app.use(
     extended: true,
   })
 );
-// const database = getDatabase(app);
 app.get("/", (req, res) => {
-  async function getCities(db) {
-    const citiesCol = collection(db, "usergames");
-    console.log(citiesCol);
-    const citySnapshot = await getDocs(citiesCol);
-    const cityList = citySnapshot.docs.map((doc) => doc.data());
-    console.log(cityList);
-  }
-  getCities(db);
   res.send("Server PAllu is up");
 });
-app.post("/signup", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  var userreq = req.body;
-  console.log(userreq[0]);
-  console.log(typeof userreq[0]);
-  console.log(typeof userreq[0].username);
-  console.log(userreq[0].username);
-  createUserWithEmailAndPassword(auth, userreq[0].username, userreq[0].password)
-    .then((userCredential) => {
-      // Signed in
-      const user = userCredential.user;
-      console.log(user);
-      uid = user.uid;
-      res.json({ userId: uid, success: true });
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorCode);
-      console.log(errorMessage);
-      res.json({ success: false, errorMessage: errorMessage });
-    });
-  //   res.json({ b: true });
-});
-app.post("/login", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  var userreq = req.body;
-  console.log(userreq[0]);
-  console.log(typeof userreq[0]);
-  console.log(typeof userreq[0].username);
-  console.log(userreq[0].username);
-  signInWithEmailAndPassword(auth, userreq[0].username, userreq[0].password)
-    .then((userCredential) => {
-      // Signed in
-      const user = userCredential.user;
-      console.log(user.uid);
-      uid = user.uid;
-      // ...
-      res.json({ userId: uid, success: true });
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorCode);
-      console.log(errorMessage);
-      res.json({ success: false });
-    });
-});
-app.post("/createGame", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  let values = req.body[0];
-  console.log(values);
-  let userId = values.userId;
-  let gameName = values.gameName;
-  const addDatas = async (userId, gameName) => {
-    const newCityRef = collection(db, "usergames");
-    let data = {
-      name: "Pallasvi3",
-      gameName: gameName,
-      userId: userId,
-    };
-    let gamesId = await addDoc(newCityRef, data);
-    let gameId = await gamesId.id;
-    // const gamesRef = collection(db, "Games");
-    // let gameData = {
-    //   gameName: gameName,
-    //   userId: userId,
-    //   gameId: gamesId,
-    // };
-    // const gameId = await addDoc(gamesRef, gameData);
-    // console.log(gameId.Id);
-    // console.log(gameId);
-    res.json({ success: true, gameId: gameId });
-  };
-  addDatas(userId, gameName);
-});
-app.post("/getGames", (req, res) => {
-  const getData = async () => {
-    const q = query(
-      collection(db, "usergames"),
-      where("userId", "==", req.body[0].userId)
-    );
-    // console.log(q);
-    const querySnapshot = await getDocs(q);
-    let games = [];
-    querySnapshot.forEach((doc) => {
-      // doc.data() is never undefined for query doc snapshots
-      console.log(doc.id, " => ", doc.data());
-      let x = [doc.id, doc.data().gameName];
-      games.push(x);
-    });
-    res.json({ success: true, games: games });
-  };
-  getData();
-});
+app.post("/signup", signUp);
+app.post("/login", login);
+app.post("/createGame", createGame);
+app.post("/getGames", getGames);
+app.post("/addGame", addGame);
 
-app.post("/addGame", (req, res) => {
-  const getData = async () => {
-    const gamesRef = collection(db, "Games");
-    let q = req.body[0].questions;
-    let j = q.map((elem) => {
-      return {
-        question: elem[0],
-        answer: elem[1],
-      };
+app.post("/getGame", getGame);
+app.post("/createRoom", (req, res) => {
+  console.log("Here");
+  io.on("connection", (socket) => {
+    socket.on("create-room", (room) => {
+      console.log(room);
+      socket.join(room);
+      socket.emit("room-joined", socket.id);
     });
-    let gameData = {
-      gameName: req.body[0].gameName,
-      gameId: req.body[0].gameId,
-      questions: j,
-    };
-    const gameId = await addDoc(gamesRef, gameData);
-    res.json({ success: true, gameId: gameId.id });
-  };
-  getData();
-  // console.log(req.body[0].gameName);
-  // console.log(req.body[0].gameId);
-  // console.log(req.body[0].questions);
+    // console.log(socket.id);
+    // socket.join("some room");
+  });
 });
-
-app.post("/getGame", (req, res) => {
-  const getData = async () => {
-    const q = query(
-      collection(db, "Games"),
-      where("gameId", "==", req.body[0].gameId)
-    );
-    // console.log(q);
-    const querySnapshot = await getDocs(q);
-    let games = [];
-    querySnapshot.forEach((doc) => {
-      // doc.data() is never undefined for query doc snapshots
-      console.log(doc.id, " => ", doc.data());
-      let x = [doc.id, doc.data()];
-      games.push(x);
-    });
-    res.json({ success: true, games: games });
-  };
-  getData();
-});
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+httpServer.listen(port);
