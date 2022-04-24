@@ -1,18 +1,10 @@
 import { initializeApp } from "firebase/app";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-} from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-
 const firebaseConfig = {
   apiKey: process.env.API_KEY,
   authDomain: "game-ae656.firebaseapp.com",
