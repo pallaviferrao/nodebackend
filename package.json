@@ -23,7 +23,12 @@
     "firebase": "^9.6.10",
     "firebase-admin": "^10.0.2",
     "node-polyfill-webpack-plugin": "^1.1.4",
-    "path-browserify": "^1.0.1"
+    "path-browserify": "^1.0.1",
+    "redis": "^4.0.6",
+    "redis-json": "^6.0.3",
+    "reflect-metadata": "^0.1.13",
+    "socket-controllers": "0.0.5",
+    "socket.io": "^4.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
