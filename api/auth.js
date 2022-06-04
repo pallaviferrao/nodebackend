@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: process.env.API_ID,
   measurementId: process.env.MEASUREMENT_ID,
 };
+
 const apps = initializeApp(firebaseConfig);
 const db = getFirestore(apps);
 let uid = "";
@@ -38,7 +39,8 @@ const login = (req, res) => {
       res.json({ success: false });
     });
 };
-const signUp = (res, req) => {
+const signUp = (req, res) => {
+  console.log("Signing up");
   res.setHeader("Content-Type", "application/json");
   var userreq = req.body;
   createUserWithEmailAndPassword(auth, userreq[0].username, userreq[0].password)
