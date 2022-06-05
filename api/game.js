@@ -28,7 +28,6 @@ const createGame = async (req, res) => {
   let gameName = values.gameName;
   const newCityRef = collection(db, "usergames");
   let data = {
-    name: "Pallasvi3",
     gameName: gameName,
     userId: userId,
   };
