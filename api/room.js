@@ -107,4 +107,40 @@ const createRoom = async (req, res) => {
     // socket.join("some room");
   });
 };
-export { createRedis, createRoom, createRedisClient };
+// const createRoom1 = () => {
+//   io.on("connection", (socket) => {
+//     socket.on("join-room", async (room) => {
+//       console.log(room);
+//       socket.join(room);
+//       socket.emit("room-joined", socket.id);
+//     });
+
+//   });
+// };
+io.on("connection", (socket) => {
+  socket.on("join-room", async (room) => {
+    console.log(room);
+    socket.join(room);
+    socket.emit("room-joined", socket.id);
+  });
+  socket.on("start-game", async (room, data) => {
+    console.log("room", room);
+    io.to(room).emit("sendM", data);
+  });
+
+  socket.on("nextGame", async (room, index) => {
+    console.log("room", room);
+    io.to(room).emit("next-game", index);
+  });
+  socket.on("leaderboard", async (room, userBoard) => {
+    console.log(userBoard);
+    io.to(room).emit("client-leaderboard", userBoard);
+  });
+});
+export {
+  createRedis,
+  createRoom,
+  createRedisClient,
+  // createRoom1,
+  // sendToAllSockets,
+};
