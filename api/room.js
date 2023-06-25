@@ -37,6 +37,8 @@ const createRedisClient = async (name, value) => {
 const createRedis = async (req, res) => {
   // const createRedis = async () => {
   console.log("Redis connect");
+
+  //process.env.REDIS_PASS
   const client = createClient({
     url: "redis://redis-13382.c299.asia-northeast1-1.gce.cloud.redislabs.com:13382",
     password: process.env.REDIS_PASS,
@@ -133,7 +135,7 @@ io.on("connection", (socket) => {
     io.to(room).emit("next-game", index);
   });
   socket.on("leaderboard", async (room, userBoard) => {
-    console.log(userBoard);
+    console.log("Userboard", userBoard);
     io.to(room).emit("client-leaderboard", userBoard);
   });
 });

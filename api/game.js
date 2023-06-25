@@ -126,8 +126,9 @@ const startGame1 = async (req, res) => {
   let isAdmin = false;
   querySnapshot.forEach(async (doc) => {
     dataResult.push(doc.data());
+    console.log(doc.data());
     let users = doc.data().users;
-
+    console.log(users);
     if (!users) {
       users = {};
       isAdmin = true;
@@ -166,10 +167,12 @@ const userList = async (req, res) => {
   let users = docData[0].users;
   res.json({ success: true, waiting: false, userList: users });
 };
-const votePerson = async (req, res) => {
-  let vote = req.body[0].vote;
+const addPoints = async (req, res) => {
+  console.log(req.body[0]);
+  let vote = req.body[0].userName;
+  let score = req.body[0].points;
   let roomName = req.body[0].roomName;
-  let score = req.body[0].score;
+
   const q = query(
     collection(db, "readyToPlayGames"),
     where("roomName", "==", roomName)
@@ -181,17 +184,57 @@ const votePerson = async (req, res) => {
     docData.push(doc.data());
   });
   let users = docData[0].users;
-  users[vote] = users[vote] - score;
+
   let socketsCount = docData[0].socketsCount;
   if (!socketsCount) {
     socketsCount = 0;
   }
   socketsCount++;
+  users[vote] = users[vote] + score;
+  console.log("Users", users);
   querySnapshot.forEach(async (doc) => {
-    console.log(doc.data());
+    console.log("docData", doc.data());
     docData.push(doc.data());
     updateDoc(doc.ref, { users: users, socketsCount: socketsCount });
   });
+  console.log("Users again", users);
+  if (socketsCount === Object.keys(users).length) {
+    res.json({ success: true, waiting: false, leaderBoard: users });
+  } else {
+    res.json({ success: true, waiting: false, leaderBoard: users });
+  }
+};
+const votePerson = async (req, res) => {
+  console.log(req.body[0]);
+  let vote = req.body[0].vote;
+  let roomName = req.body[0].roomName;
+  let score = req.body[0].score;
+
+  const q = query(
+    collection(db, "readyToPlayGames"),
+    where("roomName", "==", roomName)
+  );
+  const querySnapshot = await getDocs(q);
+  let docData = [];
+  querySnapshot.forEach(async (doc) => {
+    console.log(doc.data());
+    docData.push(doc.data());
+  });
+  let users = docData[0].users;
+
+  let socketsCount = docData[0].socketsCount;
+  if (!socketsCount) {
+    socketsCount = 0;
+  }
+  socketsCount++;
+  users[vote] = users[vote] - score;
+  console.log("Users", users);
+  querySnapshot.forEach(async (doc) => {
+    console.log("docData", doc.data());
+    docData.push(doc.data());
+    updateDoc(doc.ref, { users: users, socketsCount: socketsCount });
+  });
+  console.log("Users again", users);
   if (socketsCount === Object.keys(users).length) {
     res.json({ success: true, waiting: false, leaderBoard: users });
   } else {
@@ -253,4 +296,5 @@ export {
   submitQuiz,
   userList,
   votePerson,
+  addPoints,
 };

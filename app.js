@@ -11,6 +11,7 @@ import {
   submitQuiz,
   userList,
   votePerson,
+  addPoints,
 } from "./api/game.js";
 import { signUp, login } from "./api/auth.js";
 const port = process.env.PORT || 5000;
@@ -32,4 +33,5 @@ app.post("/startGame2", startGame2);
 app.post("/submitQuiz", submitQuiz);
 app.post("/userList", userList);
 app.post("/votePerson", votePerson);
+app.post("/addPoints", addPoints);
 httpServer.listen(port);
